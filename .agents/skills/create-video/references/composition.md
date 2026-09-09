@@ -7,17 +7,23 @@ Copy nguyên cấu trúc, chỉ đổi những gì liệt kê ở mục "Đổi 
 
 - Khối `@font-face` trong `<head>` — 4 khối: "Be Vietnam Pro" 900 (2 subset:
   vietnamese + latin) và "JetBrains Mono" 700 (2 subset). Kèm `font-family: "Be Vietnam Pro",
-  sans-serif` ở rule `html, body`.
+  sans-serif` ở rule `html, body`. `src: url(...)` trỏ vào `assets/vendor/fonts/*.woff2` (tự
+  host, không phải `fonts.gstatic.com`) — copy nguyên 4 file `.woff2` từ
+  `videos/dev-vs-devops/assets/vendor/fonts/`.
 - Biến CSS `:root` (bảng màu series).
 - Toàn bộ rule `.card`, `.card-icon`, `.card-label`, `#vs-badge`, `.caption-line`,
   `.caption-line-text`, `.kw`, `#eyebrow`, `#ghost-word`, `#glow-top`, `#glow-bottom`,
-  và toàn bộ avatar (`#avatar-host`, `#avatar-body`, `#arm-left`, `#arm-right`, `#mouth`,
-  `#antenna`, mắt/visor).
-- Helper JS: `showLine()`, `pose()`, `headTilt()`, `talk()`, và 2 tween ambient glow
-  phase-opposed ở cuối timeline.
+  và toàn bộ avatar (`#avatar-host`, `.avatar-pose`).
+- 5 file ảnh MC trong `assets/avatar/` (`pose-1-point-left.png` … `pose-5-neutral.png`) — copy
+  y nguyên bytes từ `videos/dev-vs-devops/assets/avatar/` sang video mới, **không** tạo ảnh
+  khác cho từng video (nhân vật MC dùng chung cho cả series, giống `assets/bg-plexus.mp4`).
+- Helper JS: `showLine()`, `setPose()`, `talk()`, và 2 tween ambient glow
+  phase-opposed ở cuối timeline. `POSE_POINT_LEFT` / `POSE_POINT_RIGHT` / `POSE_SHRUG` /
+  `POSE_EXPLAIN` / `POSE_NEUTRAL` là hằng số selector map sang 5 pose ở trên.
 - Khai báo timeline: `gsap.timeline({ paused: true })` + `window.__timelines["main"] = tl;`
   ở cuối script.
-- `<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>`.
+- `<script src="assets/vendor/gsap.min.js"></script>` — GSAP tự host trong repo (không phải CDN,
+  xem mục dưới), copy nguyên file `assets/vendor/gsap.min.js` từ `videos/dev-vs-devops/`.
 
 ### Vì sao font phải là `@font-face`, không phải `<link>`
 
@@ -75,29 +81,33 @@ Template gốc có 5 beat cho 8 dòng. Bản 12 dòng có **6 beat**:
 ```js
 const capOut = (n) => VO[n].start + VO[n].dur + 0.25;
 
-// BEAT 1: HOOK (line 1-2) — pose chỉ trái rồi chỉ phải
-pose(115, -8, VO[1].start, 0.3);   showLine("#line-1", VO[1].start, capOut(1));  talk(...);
-pose(8, -115, VO[2].start, 0.3);   showLine("#line-2", VO[2].start, capOut(2));  talk(...);
+// BEAT 1: HOOK (line 1-2) — chỉ trái rồi chỉ phải
+setPose(POSE_POINT_LEFT, VO[1].start, 0.3);   showLine("#line-1", VO[1].start, capOut(1));  talk(...);
+setPose(POSE_POINT_RIGHT, VO[2].start, 0.3);  showLine("#line-2", VO[2].start, capOut(2));  talk(...);
 
-// BEAT 2: NÚT THẮT (line 3) — shrug + headTilt, trả tilt về 0 ở capOut(3)
-pose(55, -55, VO[3].start, 0.35);  headTilt(6, VO[3].start, 0.35);
-showLine("#line-3", VO[3].start, capOut(3));  talk(...);  headTilt(0, capOut(3), 0.3);
+// BEAT 2: NÚT THẮT (line 3) — shrug
+setPose(POSE_SHRUG, VO[3].start, 0.35);
+showLine("#line-3", VO[3].start, capOut(3));  talk(...);
 
 // BEAT 3: GIẢI A (line 4-5-6) — active-side emphasis: card-left sáng, card-right dim
 tl.to("#card-left",  { scale: 1.05, opacity: 1,    duration: 0.4, ease: "power2.out" }, VO[4].start);
 tl.to("#card-right", { scale: 0.96, opacity: 0.55, duration: 0.4, ease: "power2.out" }, VO[4].start);
-pose(75, -8, VO[4].start, 0.3);
+setPose(POSE_EXPLAIN, VO[4].start, 0.3);
 // 3 lệnh showLine + talk cho line 4, 5, 6
 
-// BEAT 4: GIẢI B (line 7-8-9) — đảo emphasis sang card-right
+// BEAT 4: GIẢI B (line 7-8-9) — đảo emphasis sang card-right (giữ nguyên POSE_EXPLAIN,
+// không có bản mirror riêng — chỉ 5 pose cố định, xem DESIGN.md)
 // 3 lệnh showLine + talk cho line 7, 8, 9
 
 // BEAT 5: SO SÁNH TRỰC TIẾP (line 10-11) — BEAT MỚI, không có trong template 8 dòng.
 // Trả cả 2 card về full opacity/scale 1 (đối chiếu song song, không bên nào được ưu tiên),
-// có thể nhấp nháy nhẹ luân phiên 2 card theo 2 dòng. 2 lệnh showLine + talk.
+// setPose(POSE_SHRUG, ...) (gesture "so sánh 2 bên"), có thể nhấp nháy nhẹ luân phiên 2 card
+// theo 2 dòng. 2 lệnh showLine + talk.
 
-// BEAT 6: PAYOFF (line 12) — cả 2 card scale 1 / opacity 1, pose neutral (8, -8),
-// avatar-body punch nhẹ (yoyo repeat 1), verdict badge pop:
+// BEAT 6: PAYOFF (line 12) — cả 2 card scale 1 / opacity 1, setPose(POSE_NEUTRAL, ...),
+// punch nhẹ trên pose hiện tại (currentPoseId, yoyo repeat 1), verdict badge pop:
+setPose(POSE_NEUTRAL, VO[12].start, 0.3);
+tl.fromTo(currentPoseId, { scale: 1 }, { scale: 1.04, duration: 0.3, ease: "power2.out", yoyo: true, repeat: 1 }, VO[12].start);
 tl.fromTo("#verdict-left",  { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "power3.out" }, VO[12].start + 0.15);
 tl.fromTo("#verdict-right", { scale: 0, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.4, ease: "power3.out" }, VO[12].start + 0.25);
 showLine("#line-12", VO[12].start, null); // null = giữ tới hết, KHÔNG thoát

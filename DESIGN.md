@@ -55,12 +55,19 @@ center** (x=540) with symmetric left/right padding — see Safe zone below.
 - **Middle — caption zone** (`y 840–1300`, 460px): one caption line visible at a time,
   centered, max-width 860px, left=110 (symmetric 110px margins). Keyword spans get
   `--accent-pink`.
-- **Bottom — avatar zone** (`y 1280–1920`, 640px): a flat CSS/SVG 2D robot host character
-  (`#avatar-host` top=1280, left=330, horizontally centered like every other zone) — rounded-rect
-  head with a glowing antenna tip, an LED-style visor with two square eyes, a speaker-bar mouth,
-  rectangular mechanical arms, and a glowing chest light on the torso. Arms swap rotation per
-  beat (point-left / point-right / shrug / explain / neutral-hold). Top raised from the original
-  y=1360 so the head/face clears the platform caption/username band — see Safe zone.
+- **Bottom — avatar zone** (`y 1280–1920`, 640px): a photo-cutout MC host character
+  (`#avatar-host` top=1280, left=330, width=420, horizontally centered like every other zone) —
+  5 static PNG cutouts (transparent background, `assets/avatar/pose-{1..5}-*.png`), aligned to a
+  common head anchor so they stack without any jump, layered as `<img class="avatar-pose">`
+  children and crossfaded via opacity (`setPose()` in the JS, no per-limb rig). Poses:
+  `pose-1-point-left`, `pose-2-point-right`, `pose-3-shrug`, `pose-4-explain`,
+  `pose-5-neutral` (default-visible) — swapped per beat (point-left / point-right / shrug /
+  explain / neutral-hold), same beat semantics the old robot arms used. Top raised from the
+  original y=1360 so the head/face clears the platform caption/username band — see Safe zone.
+  Regenerating this cutout set for a different host person: run the same rembg-based background
+  removal + head-anchor alignment used to produce the current set (see git history for the
+  script), keep the exact 5 pose filenames, and copy the resulting PNGs into every video's
+  `assets/avatar/`.
 
 ## Safe zone (platform UI overlays)
 
@@ -114,9 +121,10 @@ with no `top`/`left` adapt automatically.
   scale-punch (1→1.15→1, 0.25s) timed to the line's entrance — a simplified,
   line-level cousin of `asr-keyword-glow` (no continuous per-word envelope; this is a
   30-40s fast-cut format, not a lyric-video read).
-- **Avatar arms**: discrete rotation tweens per beat, `power3.out`, ~0.3s — point-left,
-  point-right, shrug (both arms up+out), explain (one arm lower, open palm), neutral
-  (arms at rest) for the outro hold.
+- **Avatar pose**: discrete opacity crossfade between the two now-current/next pose images per
+  beat, `power2.inOut`, ~0.3s (`setPose()`) — point-left, point-right, shrug, explain, neutral
+  for the outro hold. A subtle scale pulse (`talk()`) on the currently-visible pose stands in for
+  lip-sync while a line is speaking.
 - **Active-side emphasis**: during Giải A / Giải B, the inactive card dims to 55% opacity +
   scales to 0.96; the active card stays at full opacity/scale — directs the eye without a
   camera move (`camera-static` — the split symmetry is the subject early, but attention
