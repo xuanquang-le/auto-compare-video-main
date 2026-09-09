@@ -7,7 +7,9 @@ Copy nguyên cấu trúc, chỉ đổi những gì liệt kê ở mục "Đổi 
 
 - Khối `@font-face` trong `<head>` — 4 khối: "Be Vietnam Pro" 900 (2 subset:
   vietnamese + latin) và "JetBrains Mono" 700 (2 subset). Kèm `font-family: "Be Vietnam Pro",
-  sans-serif` ở rule `html, body`.
+  sans-serif` ở rule `html, body`. `src: url(...)` trỏ vào `assets/vendor/fonts/*.woff2` (tự
+  host, không phải `fonts.gstatic.com`) — copy nguyên 4 file `.woff2` từ
+  `videos/dev-vs-devops/assets/vendor/fonts/`.
 - Biến CSS `:root` (bảng màu series).
 - Toàn bộ rule `.card`, `.card-icon`, `.card-label`, `#vs-badge`, `.caption-line`,
   `.caption-line-text`, `.kw`, `#eyebrow`, `#ghost-word`, `#glow-top`, `#glow-bottom`,
@@ -20,7 +22,8 @@ Copy nguyên cấu trúc, chỉ đổi những gì liệt kê ở mục "Đổi 
   `POSE_EXPLAIN` / `POSE_NEUTRAL` là hằng số selector map sang 5 pose ở trên.
 - Khai báo timeline: `gsap.timeline({ paused: true })` + `window.__timelines["main"] = tl;`
   ở cuối script.
-- `<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>`.
+- `<script src="assets/vendor/gsap.min.js"></script>` — GSAP tự host trong repo (không phải CDN,
+  xem mục dưới), copy nguyên file `assets/vendor/gsap.min.js` từ `videos/dev-vs-devops/`.
 
 ### Vì sao font phải là `@font-face`, không phải `<link>`
 
